@@ -81,9 +81,6 @@
   .slot.s-need .k{color:var(--need);} .slot.s-method .k{color:var(--id);} .slot.s-tech .k{color:var(--tech);}
   .slot .v{font-weight:700;font-size:.94rem;} .slot .v.empty{color:var(--muted);font-weight:500;font-size:.86rem;}
   .slots .plus{display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--muted);font-weight:800;}
-  .prompt{background:#FFF;border:1px solid #F0DCE8;border-radius:12px;padding:14px 16px;margin:0 0 18px;}
-  .prompt .h{font-size:.7rem;letter-spacing:.09em;font-weight:700;color:#000;text-transform:uppercase;margin:0 0 6px;}
-  .prompt p{margin:0;font-size:1.0rem;color:#3e3a33;line-height:1.55;white-space:pre-wrap;}
   .field{margin:0 0 15px;}
   .field .q{display:block;font-weight:700;font-size:1.0rem;margin-bottom:8px;}
   .field .q .opt{font-weight:500;color:var(--muted);font-size:.85rem;}
@@ -251,6 +248,13 @@ let current='id';
 
 /* 시나리오를 이루는 네 칸 — 자연스러운 우리말 이름 */
 const DIMS=[['physical','나의 행동'],['functional','장난감의 반응'],['fictional','장면의 배경'],['affective','마음이 가는 이유']];
+/* 카드 미선택 시 각 칸에 보여 줄 기본 안내 문구 */
+const DHINT_DEFAULT={
+  physical:'나는 장난감에게 어떤 행동을 하나요?',
+  functional:'장난감이 어떻게 반응하나요? (말하기, 움직이기 등)',
+  fictional:'이 장면은 어떤 배경이 있나요?',
+  affective:'어떤 점이 장난감이 캐릭터처럼 느껴지게 하나요?',
+};
 const editing=new Set();   // 현재 인라인 수정 중인 시나리오 id
 
 function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -286,18 +290,17 @@ function themePageHTML(th){
         <div class="plus">+</div>
         <div class="slot s-tech"><span class="k">기능</span><span class="v empty" id="slot-tech-${k}">기능 카드를 선택</span></div>
       </div>
-      <div class="prompt"><p class="h">아이데이션 문구</p><p id="prompt-${k}">위에서 카드를 선택하세요.</p></div>
       <div class="field">
-        <label class="q">캐릭터성이 돋보이는 시나리오 작성하기 <span class="opt">— 아이데이션 문구를 참고하여 네칸을 채운 후, ‘저장’하면 하나의 장면이 됩니다</span></label>
+        <label class="q">캐릭터성이 돋보이는 시나리오 작성하기 <span class="opt">— 각 칸의 안내 질문을 참고하여 네칸을 채운 후, ‘저장’하면 하나의 장면이 됩니다</span></label>
         <div class="dims">
-          <div class="dim"><span class="dlab">나의 행동</span><span class="dhint">나는 장난감에게 어떤 행동을 하나요?</span>
-            <textarea id="f-physical-${k}" placeholder="예: 비비를 손으로 집어든다."></textarea></div>
-          <div class="dim"><span class="dlab">장난감의 반응</span><span class="dhint">장난감이 어떻게 반응하나요? (말하기, 움직이기 등)</span>
-            <textarea id="f-functional-${k}" placeholder="예: 집어 들자 제자리에서 한 바퀴 돈다. — “오, 드디어 나 부른 거야?”"></textarea></div>
-          <div class="dim"><span class="dlab">장면의 배경</span><span class="dhint">이 장면은 어떤 배경이 있나요?</span>
-            <textarea id="f-fictional-${k}" placeholder="예: 며칠 놓여 있다가 주인이 다시 찾아준 탐험가."></textarea></div>
-          <div class="dim"><span class="dlab">마음이 가는 이유</span><span class="dhint">어떤 점이 장난감이 캐릭터처럼 느껴지게 하나요?</span>
-            <textarea id="f-affective-${k}" placeholder="예: 날 알아보고 반가워하는 게, 진짜 기다린 것 같아서 좋다."></textarea></div>
+          <div class="dim"><span class="dlab">나의 행동</span><span class="dhint" id="dhint-physical-${k}">나는 장난감에게 어떤 행동을 하나요?</span>
+            <textarea id="f-physical-${k}"></textarea></div>
+          <div class="dim"><span class="dlab">장난감의 반응</span><span class="dhint" id="dhint-functional-${k}">장난감이 어떻게 반응하나요? (말하기, 움직이기 등)</span>
+            <textarea id="f-functional-${k}"></textarea></div>
+          <div class="dim"><span class="dlab">장면의 배경</span><span class="dhint" id="dhint-fictional-${k}">이 장면은 어떤 배경이 있나요?</span>
+            <textarea id="f-fictional-${k}"></textarea></div>
+          <div class="dim"><span class="dlab">마음이 가는 이유</span><span class="dhint" id="dhint-affective-${k}">어떤 점이 장난감이 캐릭터처럼 느껴지게 하나요?</span>
+            <textarea id="f-affective-${k}"></textarea></div>
         </div>
       </div>
       <div class="field"><label class="q" for="f-break-${k}">이 시나리오를 추상적으로 표현해서 간단히 적어주세요. (예시: 피규어가 자기 성격과 소품에 맞는 말투로 반응.) </label>
@@ -347,7 +350,7 @@ function labelOf(theme,kind){
 }
 function composed(theme){
   const n=labelOf(theme,'need'), m=labelOf(theme,'method'), t=labelOf(theme,'tech');
-  if(!n&&!m&&!t) return '위에서 카드를 선택하세요.';
+  if(!n&&!m&&!t) return '';
   const mm=m||'곁에서 하는 평소 방법', tt=t||'장난감의 작동', nn=n||'이 캐릭터에게 바라는 것';
   return [
     '[나의 행동] 나는 장난감에게 어떤 행동을 하나요?',
@@ -356,12 +359,32 @@ function composed(theme){
     `[마음이 가는 이유] 그 모습에서 ‘${nn}’${batchim(nn)?'이':'가'} 왜 채워진다고 느끼나요?`
   ].join('\n');
 }
+
+/* 아이데이션 문구(네 줄)를 각 칸별로 분리 */
+function parsePromptLines(text){
+  const labelToKey={}; DIMS.forEach(([k,lab])=>{ labelToKey[lab]=k; });
+  const map={}; let cur=null;
+  (text||'').split('\n').forEach(line=>{
+    const m=line.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+    if(m && labelToKey[m[1].trim()]){ cur=labelToKey[m[1].trim()]; map[cur]=m[2].trim(); }
+    else if(cur && line.trim()){ map[cur]=(map[cur]?map[cur]+' ':'')+line.trim(); }
+  });
+  return map;
+}
+/* 각 dim의 dhint 갱신 (없으면 기본 안내 문구로 되돌림) */
+function setHints(theme,map){
+  DIMS.forEach(([k])=>{
+    const el=document.getElementById(`dhint-${k}-${theme}`); if(!el)return;
+    const v=map && map[k];
+    el.textContent=(v&&v.trim())?v.trim():DHINT_DEFAULT[k];
+  });
+}
+
 const _promptTimers={}, _promptSeq={};
 function requestPrompt(theme){
-  const el=document.getElementById(`prompt-${theme}`); if(!el)return;
   const s=sel[theme];
-  if(s.method==null||s.tech==null){ el.textContent=composed(theme); return; }
-  el.textContent='예시 상황을 만드는 중…';
+  if(s.method==null||s.tech==null){ setHints(theme,null); return; }   // 카드 부족 → 기본 안내
+  setHints(theme,parsePromptLines(composed(theme)));                  // AI 응답 전 폴백 먼저 표시
   clearTimeout(_promptTimers[theme]);
   const seq=(_promptSeq[theme]=(_promptSeq[theme]||0)+1);
   _promptTimers[theme]=setTimeout(async()=>{
@@ -369,8 +392,8 @@ function requestPrompt(theme){
       const r=await api('/api/prompt',{method:'POST',body:JSON.stringify({
         need:labelOf(theme,'need'), method:labelOf(theme,'method'), tech:labelOf(theme,'tech'), theme})});
       if(seq!==_promptSeq[theme])return;            // 더 최신 선택이 있으면 무시
-      el.textContent=(r&&r.prompt)?r.prompt:composed(theme);
-    }catch(e){ if(seq===_promptSeq[theme]) el.textContent=composed(theme); }
+      setHints(theme,parsePromptLines((r&&r.prompt)?r.prompt:composed(theme)));
+    }catch(e){ if(seq===_promptSeq[theme]) setHints(theme,parsePromptLines(composed(theme))); }
   },500);
 }
 function refreshBuilder(theme){
