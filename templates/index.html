@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>캐릭터라이징 디자인 워크샵</title>
+<style>
+  :root{
+    --bg:#FAF7F2; --ink:#2A2722; --muted:#8A8275; --line:#E7E0D5; --paper:#FFFFFF;
+    --id:#E76F51; --rel:#E76F51; --place:#E76F51; --tech:#5B6B9E; --need:#D76A9C; --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html{font-size:108%;} /* 전체 글자 크기 한 번에 조절: 기본 100% → 키우려면 이 값만 올리세요(예: 112%) */
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1060px;margin:0 auto;padding:24px 22px 90px;}
+
+  .bar{position:sticky;top:0;z-index:20;background:rgba(250,247,242,.94);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 22px;margin:0 -22px 22px;}
+  .bar .who{display:flex;align-items:center;gap:9px;flex:1;min-width:200px;}
+  .bar label{font-size:.82rem;color:var(--muted);white-space:nowrap;}
+  .bar input{border:1px solid var(--line);border-radius:9px;padding:7px 11px;font:inherit;font-size:.9rem;background:#fff;min-width:130px;}
+  .bar .count{font-size:.85rem;color:var(--muted);}
+
+  .eyebrow{font-size:.8rem;letter-spacing:.14em;color:var(--muted);font-weight:700;margin:0 0 10px;}
+  h1{font-size:1.9rem;line-height:1.15;margin:0 0 10px;font-weight:800;letter-spacing:-.02em;}
+  h1 .soft{color:var(--id);}
+  .lede{font-size:.98rem;color:#574f44;margin:0 0 18px;max-width:800px;}
+
+  .stepper{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 30px;}
+  .step{padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;
+    font-size:.85rem;color:var(--muted);font-weight:600;transition:background .15s,color .15s;}
+  .step:hover{border-color:var(--ink);}
+  .step.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  .page[hidden]{display:none;}
+
+  .eq{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:0 0 14px;}
+  .eq .box{flex:1;min-width:110px;border-radius:11px;padding:11px 12px;color:#fff;font-weight:700;font-size:.92rem;}
+  .eq .box small{display:block;font-weight:500;opacity:.9;font-size:.72rem;margin-top:3px;}
+  .b-need{background:var(--need);} .b-method{background:var(--id);} .b-tech{background:var(--tech);} .b-out{background:var(--ink);}
+  .eq .op{font-size:1.25rem;font-weight:800;color:var(--muted);}
+  /* 상단 바에 들어가는 컴팩트 버전 */
+  .bar .eq-mini{background:none;border:none;border-radius:0;padding:0;margin:0;gap:6px;}
+  .bar .eq-mini .box{flex:0 0 auto;min-width:0;padding:5px 9px;border-radius:8px;font-size:.74rem;}
+  .bar .eq-mini .op{font-size:.95rem;}
+
+  .example{background:#fff;border:1px solid var(--line);border-left:5px solid var(--need);border-radius:13px;padding:16px 18px;margin:0 0 18px;}
+  .example .h{font-size:.72rem;letter-spacing:.1em;font-weight:700;color:var(--need);text-transform:uppercase;margin:0 0 8px;}
+  .example .combo{font-size:.83rem;color:var(--muted);margin:0 0 7px;} .example .combo b{color:var(--ink);}
+  .example p{margin:0;font-size:.94rem;color:#473f35;}
+  .flow{border:1px dashed var(--line);border-radius:var(--radius);padding:15px 18px;margin:0 0 34px;background:#fffdf8;font-size:.86rem;color:#574f44;}
+  .flow b{color:var(--ink);}
+
+  .sec-head{margin:30px 0 6px;}
+  .sec-head:first-child{margin-top:0;}
+  .sec-head h2{font-size:1.35rem;margin:0;font-weight:800;letter-spacing:-.01em;display:inline;}
+  .sec-head .tag{font-size:.88rem;color: #000;;margin-left:10px;}
+  .layer-lab{font-size:.78rem;font-weight:700;letter-spacing:.03em;margin:18px 0 10px;display:flex;gap:8px;align-items:center;}
+  .layer-lab .pip{width:10px;height:10px;border-radius:3px;}
+  .layer-lab .sub{color:var(--muted);font-weight:500;}
+
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));}
+  .card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:13px;
+    padding:14px 14px 16px;border-top:5px solid var(--c,#ccc);cursor:pointer;transition:transform .16s,box-shadow .16s;}
+  .card.need{background:#FFF;}
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(40,35,28,.10);}
+  .card.sel{box-shadow:0 0 0 3px var(--c);}
+  .card .label{font-size:.66rem;letter-spacing:.1em;font-weight:700;color:var(--c,#999);text-transform:uppercase;margin:0 0 7px;}
+  .card h4{margin:0 0 5px;font-size:1.0rem;font-weight:700;}
+  .card p{margin:0;font-size:.86rem;color:#6b6457;line-height:1.5;}
+  .card .ex{color:var(--muted);}
+  .card .pick{position:absolute;top:10px;right:11px;font-size:.68rem;font-weight:700;color:#fff;background:var(--c);border-radius:999px;padding:2px 9px;display:none;}
+  .card.sel .pick{display:inline-block;}
+
+  .builder{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-top:14px;}
+  .slots{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:9px;align-items:stretch;margin:0 0 14px;}
+  .slot{border:1.5px dashed #d8cfbf;border-radius:12px;padding:12px 13px;min-height:58px;display:flex;flex-direction:column;justify-content:center;}
+  .slot .k{font-size:.66rem;letter-spacing:.08em;font-weight:700;text-transform:uppercase;margin-bottom:4px;}
+  .slot.s-need .k{color:var(--need);} .slot.s-method .k{color:var(--id);} .slot.s-tech .k{color:var(--tech);}
+  .slot .v{font-weight:700;font-size:.94rem;} .slot .v.empty{color:var(--muted);font-weight:500;font-size:.86rem;}
+  .slots .plus{display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--muted);font-weight:800;}
+  .prompt{background:#FFF;border:1px solid #F0DCE8;border-radius:12px;padding:14px 16px;margin:0 0 18px;}
+  .prompt .h{font-size:.7rem;letter-spacing:.09em;font-weight:700;color:#000;text-transform:uppercase;margin:0 0 6px;}
+  .prompt p{margin:0;font-size:1.0rem;color:#3e3a33;line-height:1.55;white-space:pre-wrap;}
+  .field{margin:0 0 15px;}
+  .field .q{display:block;font-weight:700;font-size:1.0rem;margin-bottom:8px;}
+  .field .q .opt{font-weight:500;color:var(--muted);font-size:.85rem;}
+  .field textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font:inherit;font-size:.94rem;resize:vertical;min-height:64px;background:#fffdf8;}
+  /* 시나리오 네 칸 */
+  .dims{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .dim{display:flex;flex-direction:column;}
+  .dim .dlab{font-weight:700;font-size:.9rem;margin:0 0 2px;}
+  .dim .dhint{font-size:.78rem;color:var(--muted);margin:0 0 6px;line-height:1.4;}
+  .dim textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font:inherit;font-size:.92rem;resize:vertical;min-height:50px;background:#fffdf8;}
+  @media (max-width:600px){.dims{grid-template-columns:1fr;}}
+  .actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .hintmsg{font-size:.84rem;color:var(--muted);}
+
+  .saved-list{display:grid;gap:11px;}
+  .empty-state{color:var(--muted);font-size:.92rem;padding:18px;border:1px dashed var(--line);border-radius:12px;text-align:center;background:#fffdf8;}
+  .item{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:14px 16px;border-left:5px solid #b8a98c;}
+  .item .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+  .item .badges{display:flex;flex-wrap:wrap;gap:6px;}
+  .bd{font-size:.72rem;font-weight:700;border-radius:999px;padding:3px 10px;color:#fff;}
+  .bd.n{background:var(--need);} .bd.m{background:var(--id);} .bd.t{background:var(--tech);}
+  .item .itembtns{display:flex;gap:4px;flex:0 0 auto;}
+  .item .del,.item .edit{border:none;background:none;color:var(--muted);cursor:pointer;font-size:.82rem;padding:2px 4px;white-space:nowrap;}
+  .item .edit:hover,.item .del:hover{color:var(--ink);text-decoration:underline;}
+  .item .body{margin:10px 0 0;font-size:.93rem;color:#473f35;line-height:1.55;}
+  .item .body .lab{color:var(--muted);font-weight:600;}
+  /* 저장된 시나리오: 네 칸을 줄 단위로 보여 주고 줄바꿈을 유지 */
+  .sp{margin:0 0 5px;}
+  .sp .splab{display:inline-block;font-size:.74rem;font-weight:700;color:var(--muted);margin-right:7px;}
+  .sp .sptext{white-space:pre-wrap;}
+  /* 인라인 수정 폼 */
+  .editform .dim{margin:0 0 10px;}
+  .editform .dim .dlab{font-size:.82rem;}
+  .editform .actions{display:flex;gap:8px;margin-top:4px;}
+  .editform .btn{padding:7px 14px;font-size:.85rem;}
+
+  .btn{border:none;border-radius:10px;padding:10px 18px;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;background:var(--ink);color:#fff;}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);}
+  .btn:disabled{opacity:.35;cursor:default;}
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:34px;border-top:1px solid var(--line);padding-top:20px;}
+
+  /* vote page */
+  .dimblock{margin:0 0 36px;}
+  .dimhead{display:flex;align-items:center;gap:10px;margin:0 0 4px;border-bottom:2px solid var(--dc,#ccc);padding-bottom:8px;}
+  .dimhead h3{margin:0;font-size:1.2rem;font-weight:800;}
+  .dimhead .left{font-size:.84rem;color:var(--muted);margin-left:auto;font-weight:700;}
+  .vlist{display:grid;gap:10px;margin:14px 0 0;}
+  .vcard{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px 14px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between;}
+  .vcard .vbody{font-size:.92rem;color:#473f35;line-height:1.5;white-space:pre-wrap;}
+  .vcard .vbadges{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 7px;}
+  .vcard .vmain{min-width:0;}
+  .vcard .vauthor{font-size:.82rem;color:var(--muted);margin:0 0 7px;}
+  .vcard .vauthor b{color:var(--ink);}
+  .vcard .vlab{display:block;font-size:.74rem;font-weight:700;color:var(--muted);margin:0 0 3px;}
+  .vcard .vabs{margin:9px 0 0;font-size:.9rem;color:#473f35;line-height:1.5;background:#fffdf8;border:1px solid var(--line);border-radius:9px;padding:9px 11px;white-space:pre-wrap;}
+  .vcard .vabs b{display:inline-block;color:var(--ink);font-size:.82rem;margin:0 0 3px;}
+  .votebtn{flex:0 0 auto;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font:inherit;font-weight:800;font-size:.9rem;cursor:pointer;background:#fff;color:var(--ink);display:flex;gap:6px;align-items:center;white-space:nowrap;}
+  .votebtn.on{background:var(--need);color:#fff;border-color:var(--need);}
+  .votebtn:disabled{opacity:.4;cursor:default;}
+  .topbox{background:#fffdf8;border:1px dashed var(--line);border-radius:12px;padding:14px 16px;margin:14px 0 0;}
+  .topbox .h{font-size:.74rem;letter-spacing:.08em;font-weight:700;text-transform:uppercase;color:var(--muted);margin:0 0 9px;}
+  .topbox ol{margin:0;padding-left:20px;font-size:.9rem;color:#473f35;}
+  .topbox li{margin:0 0 6px;} .topbox li b{color:var(--ink);}
+  .topbox .v{color:var(--need);font-weight:700;}
+  .votenote{font-size:.88rem;color:#574f44;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin:0 0 24px;}
+  .votenote b{color:var(--ink);}
+
+  details.memo{margin-top:24px;border-top:1px solid var(--line);padding-top:20px;}
+  details.memo summary{cursor:pointer;font-weight:700;color:var(--muted);font-size:.9rem;}
+  details.memo .note{font-size:.87rem;color:#6b6457;margin:12px 0;} details.memo a{color:var(--tech);font-weight:600;}
+
+  @media (max-width:600px){h1{font-size:1.6rem;} .slots{grid-template-columns:1fr;} .vcard{flex-direction:column;align-items:stretch;}}
+  @media (prefers-reduced-motion:reduce){.card{transition:none;} .card:hover{transform:none;}}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="who">
+    <label for="name" style="padding-left: 10em;">이름 / 닉네임</label>
+    <input id="name" type="text" autocomplete="off">
+    <span class="count" id="count">저장된 시나리오 0개</span>
+  </div>
+  <div class="eq eq-mini" style="padding-right: 10em;" aria-hidden="true">
+    <span class="box b-need">필요성</span><span class="op">+</span>
+    <span class="box b-method">방법</span><span class="op">+</span>
+    <span class="box b-tech">기능</span><span class="op">=</span>
+    <span class="box b-out">시나리오</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <p class="eyebrow">디자인 워크샵</p>
+  <h1>장난감이 <span class="soft">‘캐릭터’</span>로 느껴지는 시나리오 만들기</h1>
+  <p class="lede">각 주제 페이지에서 <b>필요성 · 방법 · 기능</b>을 하나씩 골라 장면을 작성하고, 마지막 페이지에서 함께 모아 봅니다.</p>
+
+  <div class="stepper" id="stepper"></div>
+
+  <div id="pages"></div>
+</div>
+
+<script id="ws-config" type="application/json">{{ {'initial': initial, 'maxVotes': max_votes}|tojson }}</script>
+<script>
+const _WS = JSON.parse(document.getElementById('ws-config').textContent);
+const INITIAL = _WS.initial;
+const MAX_VOTES = _WS.maxVotes;
+
+const THEMES = [
+  { key:'id', color:'var(--id)', title:'정체성', tag:'장난감이 고유한 이름, 성격, 역할, 말투와 배경 이야기를 지니며, 사용자의 애착이 담긴 하나의 특정한 캐릭터로 느껴지는 것',
+    needs:[
+      {t:'살아 있다고 느끼기', d:'단순한 물건이 아니라 살아 있는 존재로 느끼고자 하는 것.'},
+      {t:'이야기와 세계 만들기', d:'캐릭터를 둘러싼 이야기와 작은 세계를 구성하고자 하는 것.'},
+      {t:'정 주고 아끼기', d:'곁에 두고 애착을 들이며 돌보고자 하는 것.'},
+      {t:'내 식대로 표현하기', d:'자기 취향과 손길로 캐릭터를 꾸미고 드러내고자 하는 것.'},
+    ],
+    methods:[
+      {t:'이름 지어 부르기', d:'이름을 붙이고 그 이름으로 부른다.'},
+      {t:'성격·말투 정하기', d:'성격과 말투를 정해 두고 그에 맞춰 대한다. <span class="ex">(예: 새침한 말투)</span>'},
+      {t:'맡은 일 주기', d:'역할이나 자리를 부여한다. <span class="ex">(예: 책상 위의 대장)</span>'},
+      {t:'~인 듯 대하기', d:'살아 있는 듯, 또는 다른 무언가를 대신하는 듯 대한다.'},
+      {t:'상징성 부여하기', d:'상징적인 새로운 의미를 부여한다. <span class="ex">(예: 힘든 시기를 버티게 해준 ‘작은 동료’로 여김)</span>'},
+    ]},
+  { key:'rel', color:'var(--rel)', title:'관계성', tag:'장난감이 다른 장난감을 알아보고, 친구, 가족, 라이벌, 이웃, 동료 등 각기 다른 관계를 맺고 있는 캐릭터로 느껴지는 것',
+    needs:[
+      {t:'이야기와 세계 만들기', d:'여러 캐릭터가 얽힌 관계와 이야기를 구성하고자 하는 것.'},
+      {t:'살아 있다고 느끼기', d:'서로 반응하는 모습에서 살아 있음을 확인하고자 하는 것.'},
+    ],
+    methods:[
+      {t:'이름 지어 부르기', d:'이름을 붙이고 그 이름으로 부른다.'},
+      {t:'성격·말투 정하기', d:'성격과 말투를 정해 두고 그에 맞춰 대한다. <span class="ex">(예: 새침한 말투)</span>'},
+      {t:'맡은 일 주기', d:'역할이나 자리를 부여한다. <span class="ex">(예: 책상 위의 대장)</span>'},
+      {t:'전시 및 배치하기', d:'두개의 장난감을 특정 방식으로 전시 또는 배치한다.'},
+      {t:'사이 정하기', d:'친구·가족·라이벌처럼 둘의 관계를 정한다.'},
+      {t:'편 나누고 무리 짓기', d:'여러 개를 편으로 나누거나 무리 지어 모은다.'},
+      {t:'만남 이야기 만들기', d:'둘이 만나 벌어지는 일을 이야기로 구성한다.'},
+      {t:'한쪽이 다른 쪽 챙기기', d:'한쪽이 다른 쪽을 돌보거나 대신 말한다.'},
+    ]},
+  { key:'place', color:'var(--place)', title:'장소성', tag:'장난감이 선반, 부엌, 카페, 여행지 등의 장소를 알아보고, 그곳에서의 경험과 역할을 지닌 채 특정 장소에 속한 캐릭터로 느껴지는 것',
+    needs:[
+      {t:'살아 있다고 느끼기', d:'자기 자리에서 살아 있는 존재로 느끼고자 하는 것.'},
+      {t:'이야기와 세계 만들기', d:'캐릭터가 머무는 장소와 그 세계를 구성하고자 하는 것.'},
+      {t:'옛 추억 떠올리기', d:'함께한 시간과 지난 기억을 다시 떠올리고자 하는 것.'},
+    ],
+    methods:[
+      {t:'장면 연출해 기록하기', d:'포즈와 배경을 만들어 촬영 후 기록으로 남긴다.'},
+      {t:'데리고 나가기', d:'밖으로 데리고 나가 그 장소의 풍경 속에 둬 추억을 만든다.'},
+      {t:'옛 추억 다시 꺼내기', d:'예전에 함께한 기억을 떠올리며 다시 꺼낸다.'},
+      {t:'보여 주고 이야기 나누기', d:'다른 사람에게 보여 주고 그에 관해 이야기한다.'},
+    ]},
+];
+const TECH = [
+  {t:'누구인지 알아보기', d:'어떤 장난감인지 스스로 식별한다.'},
+  {t:'움직임·위치 읽고 반응하기', d:'집어 들거나 자리를 옮기면 그에 맞춰 반응한다.'},
+  {t:'상황에 맞는 말 생성하기', d:'그때그때 상황에 맞는 말이나 이야기를 만든다.'},
+  {t:'다른 장난감과 주고받기', d:'곁의 다른 장난감을 인식하고 서로 반응한다.'},
+  {t:'함께한 일 기록·재생하기', d:'함께한 일을 저장해 두었다가 다시 보여 준다.'},
+  {t:'실물 위에 화면 겹치기', d:'실제 장난감 위에 영상이나 이미지를 겹쳐 보여 준다.'},
+];
+const THEMEMAP = Object.fromEntries(THEMES.map(t=>[t.key,t]));
+const PAGES = [...THEMES.map((t,i)=>({key:t.key,label:`${i+1}. ${t.title}`})), {key:'vote',label:'4. 모아보고 투표'}];
+
+let state={name: INITIAL.name||'', scenarios: INITIAL.scenarios||[]};
+let sel={id:{need:null,method:null,tech:null}, rel:{need:null,method:null,tech:null}, place:{need:null,method:null,tech:null}};
+let current='id';
+
+/* 시나리오를 이루는 네 칸 — 자연스러운 우리말 이름 */
+const DIMS=[['physical','나의 행동'],['functional','장난감의 반응'],['fictional','장면의 배경'],['affective','마음이 가는 이유']];
+const editing=new Set();   // 현재 인라인 수정 중인 시나리오 id
+
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function batchim(s){if(!s)return false;const c=s.charCodeAt(s.length-1);if(c<0xAC00||c>0xD7A3)return false;return (c-0xAC00)%28!==0;}
+async function api(path,opts){const r=await fetch(path,Object.assign({headers:{'Content-Type':'application/json'}},opts||{}));return r.json();}
+
+/* ---------- card + page rendering ---------- */
+function cardHTML(kind,theme,i,c,colorVar){
+  return `<div class="card ${kind==='need'?'need':''}" style="--c:${colorVar}" data-kind="${kind}" data-theme="${theme}" data-idx="${i}">
+    <span class="pick">선택됨</span><p class="label">${kind==='need'?'필요성':kind==='method'?'방법':'기능'}</p>
+    <h4>${c.t}</h4><p>${c.d}</p></div>`;
+}
+function themePageHTML(th){
+  const needs=th.needs.map((c,i)=>cardHTML('need',th.key,i,c,'var(--need)')).join('');
+  const methods=th.methods.map((c,i)=>cardHTML('method',th.key,i,c,th.color)).join('');
+  const techs=TECH.map((c,i)=>cardHTML('tech',th.key,i,c,'var(--tech)')).join('');
+  const k=th.key;
+  return `
+  <section class="page" data-page="${k}" hidden>
+    <div class="sec-head"><h2>${th.title}</h2><span class="tag">${th.tag}</span></div>
+    <div class="layer-lab"><span class="pip" style="background:var(--need)"></span>필요성 <span class="sub">— 왜 이 시나리오가 필요한지</span></div>
+    <div class="grid">${needs}</div>
+    <div class="layer-lab"><span class="pip" style="background:${th.color}"></span>방법 <span class="sub">— 내가 시나리오 상 어떻게 하고싶은지</span></div>
+    <div class="grid">${methods}</div>
+    <div class="layer-lab"><span class="pip" style="background:var(--tech)"></span>기능 <span class="sub">— 장난감이 어떠한 기능을 가졌으면 좋겠는지</span></div>
+    <div class="grid">${techs}</div>
+
+    <div class="builder">
+      <div class="slots">
+        <div class="slot s-need"><span class="k">필요성</span><span class="v empty" id="slot-need-${k}">필요성 카드를 선택</span></div>
+        <div class="plus">+</div>
+        <div class="slot s-method"><span class="k">방법</span><span class="v empty" id="slot-method-${k}">방법 카드를 선택</span></div>
+        <div class="plus">+</div>
+        <div class="slot s-tech"><span class="k">기능</span><span class="v empty" id="slot-tech-${k}">기능 카드를 선택</span></div>
+      </div>
+      <div class="prompt"><p class="h">아이데이션 문구</p><p id="prompt-${k}">위에서 카드를 선택하세요.</p></div>
+      <div class="field">
+        <label class="q">캐릭터성이 돋보이는 시나리오 작성하기 <span class="opt">— 아이데이션 문구를 참고하여 네칸을 채운 후, ‘저장’하면 하나의 장면이 됩니다</span></label>
+        <div class="dims">
+          <div class="dim"><span class="dlab">나의 행동</span><span class="dhint">나는 장난감에게 어떤 행동을 하나요?</span>
+            <textarea id="f-physical-${k}" placeholder="예: 비비를 손으로 집어든다."></textarea></div>
+          <div class="dim"><span class="dlab">장난감의 반응</span><span class="dhint">장난감이 어떻게 반응하나요? (말하기, 움직이기 등)</span>
+            <textarea id="f-functional-${k}" placeholder="예: 집어 들자 제자리에서 한 바퀴 돈다. — “오, 드디어 나 부른 거야?”"></textarea></div>
+          <div class="dim"><span class="dlab">장면의 배경</span><span class="dhint">이 장면은 어떤 배경이 있나요?</span>
+            <textarea id="f-fictional-${k}" placeholder="예: 며칠 놓여 있다가 주인이 다시 찾아준 탐험가."></textarea></div>
+          <div class="dim"><span class="dlab">마음이 가는 이유</span><span class="dhint">어떤 점이 장난감이 캐릭터처럼 느껴지게 하나요?</span>
+            <textarea id="f-affective-${k}" placeholder="예: 날 알아보고 반가워하는 게, 진짜 기다린 것 같아서 좋다."></textarea></div>
+        </div>
+      </div>
+      <div class="field"><label class="q" for="f-break-${k}">이 시나리오를 추상적으로 표현해서 간단히 적어주세요. (예시: 피규어가 자기 성격과 소품에 맞는 말투로 반응.) </label>
+        <textarea id="f-break-${k}" placeholder="위에 적은 시나리오를 간단히 추상화해서 적습니다."></textarea></div>
+      <div class="actions"><button class="btn save" data-theme="${k}" disabled>시나리오 저장</button>
+        <span class="hintmsg" id="hint-${k}">필요성 · 방법 · 기능 카드를 하나씩 선택하세요.</span></div>
+    </div>
+
+    <div class="sec-head"><h2>이 주제에서 작성한 시나리오</h2></div>
+    <div class="saved-list" id="saved-${k}"></div>
+
+    <div class="nav">
+      <button class="btn ghost" data-nav="prev">← 이전</button>
+      <button class="btn" data-nav="next">다음 →</button>
+    </div>
+  </section>`;
+}
+function votePageHTML(){
+  return `
+  <section class="page" data-page="vote" hidden>
+    <div class="sec-head"><h2>모아보고 투표</h2><span class="tag">모두가 작성한 시나리오를 차원별로 모았습니다</span></div>
+    <p class="votenote">각 차원에서 <b>가장 ‘캐릭터답다’</b>고 느껴지는 시나리오를 <b>${MAX_VOTES}개씩</b> 골라 주세요. 표가 모이면 차원마다 상위 ${MAX_VOTES}개가 자동으로 정리됩니다. <button class="btn ghost" id="refresh-votes" style="padding:6px 12px;margin-left:6px">새로고침</button></p>
+    <div id="vote-body"></div>
+    <details class="memo">
+      <summary>운영자용 — 전체 내려받기</summary>
+      <p class="note"><a href="/api/export">전체 시나리오 · 투표 내려받기 (JSON)</a></p>
+    </details>
+    <div class="nav"><button class="btn ghost" data-nav="prev">← 이전</button><span></span></div>
+  </section>`;
+}
+
+function renderPages(){
+  document.getElementById('pages').innerHTML = THEMES.map(themePageHTML).join('') + votePageHTML();
+  THEMES.forEach(th=>{ refreshBuilder(th.key); renderSaved(th.key); });
+}
+function renderStepper(){
+  document.getElementById('stepper').innerHTML = PAGES.map(p=>
+    `<button class="step${p.key===current?' active':''}" data-step="${p.key}">${p.label}</button>`).join('');
+}
+
+/* ---------- builder ---------- */
+function labelOf(theme,kind){
+  const s=sel[theme];
+  if(kind==='need') return s.need!=null?THEMEMAP[theme].needs[s.need].t:null;
+  if(kind==='method') return s.method!=null?THEMEMAP[theme].methods[s.method].t:null;
+  return s.tech!=null?TECH[s.tech].t:null;
+}
+function composed(theme){
+  const n=labelOf(theme,'need'), m=labelOf(theme,'method'), t=labelOf(theme,'tech');
+  if(!n&&!m&&!t) return '위에서 카드를 선택하세요.';
+  const mm=m||'곁에서 하는 평소 방법', tt=t||'장난감의 작동', nn=n||'이 캐릭터에게 바라는 것';
+  return [
+    '[나의 행동] 나는 장난감에게 어떤 행동을 하나요?',
+    `[장난감의 반응] ‘${mm}’${batchim(mm)?'을':'를'} 할 때 ‘${tt}’${batchim(tt)?'이':'가'} 어떤 움직임이나 말로 나타나나요?`,
+    '[장면의 배경] 그 순간 이 캐릭터에게 어떤 배경의 이야기가 깔려 있나요?',
+    `[마음이 가는 이유] 그 모습에서 ‘${nn}’${batchim(nn)?'이':'가'} 왜 채워진다고 느끼나요?`
+  ].join('\n');
+}
+const _promptTimers={}, _promptSeq={};
+function requestPrompt(theme){
+  const el=document.getElementById(`prompt-${theme}`); if(!el)return;
+  const s=sel[theme];
+  if(s.method==null||s.tech==null){ el.textContent=composed(theme); return; }
+  el.textContent='예시 상황을 만드는 중…';
+  clearTimeout(_promptTimers[theme]);
+  const seq=(_promptSeq[theme]=(_promptSeq[theme]||0)+1);
+  _promptTimers[theme]=setTimeout(async()=>{
+    try{
+      const r=await api('/api/prompt',{method:'POST',body:JSON.stringify({
+        need:labelOf(theme,'need'), method:labelOf(theme,'method'), tech:labelOf(theme,'tech'), theme})});
+      if(seq!==_promptSeq[theme])return;            // 더 최신 선택이 있으면 무시
+      el.textContent=(r&&r.prompt)?r.prompt:composed(theme);
+    }catch(e){ if(seq===_promptSeq[theme]) el.textContent=composed(theme); }
+  },500);
+}
+function refreshBuilder(theme){
+  const page=document.querySelector(`.page[data-page="${theme}"]`); if(!page)return;
+  const s=sel[theme];
+  page.querySelectorAll('.card').forEach(el=>{
+    const k=el.dataset.kind;let on=false;
+    if(k==='need'&&s.need!=null) on=String(s.need)===el.dataset.idx;
+    if(k==='method'&&s.method!=null) on=String(s.method)===el.dataset.idx;
+    if(k==='tech'&&s.tech!=null) on=String(s.tech)===el.dataset.idx;
+    el.classList.toggle('sel',on);
+  });
+  const setSlot=(kind,empty)=>{const el=document.getElementById(`slot-${kind}-${theme}`);const v=labelOf(theme,kind);
+    if(v){el.textContent=v;el.classList.remove('empty');}else{el.textContent=empty;el.classList.add('empty');}};
+  setSlot('need','필요성 카드를 선택'); setSlot('method','방법 카드를 선택'); setSlot('tech','기능 카드를 선택');
+  requestPrompt(theme);
+  const ready=s.method!=null&&s.tech!=null;
+  page.querySelector('.save').disabled=!ready;
+  document.getElementById(`hint-${theme}`).textContent =
+    ready ? (s.need!=null?'장면을 작성한 뒤 저장하세요.':'필요성 카드까지 선택하면 ‘왜 그 캐릭터다운지’가 분명해집니다.')
+          : '필요성 · 방법 · 기능 카드를 하나씩 선택하세요.';
+}
+
+function scenePartsHTML(s){
+  const rows=DIMS.filter(([k])=>(s[k]||'').trim())
+    .map(([k,lab])=>`<div class="sp"><span class="splab">${lab}</span><span class="sptext">${esc(s[k])}</span></div>`).join('');
+  if(rows) return rows;
+  // 옛 기록(네 칸이 없는 경우) 호환: scene 한 덩어리를 그대로
+  return (s.scene&&s.scene.trim())
+    ? `<div class="sp"><span class="sptext">${esc(s.scene)}</span></div>`
+    : '<span class="lab">(장면 미작성)</span>';
+}
+function editFormHTML(s){
+  const dimRows=DIMS.map(([k,lab])=>
+    `<div class="dim"><span class="dlab">${lab}</span><textarea data-edit="${k}">${esc(s[k]||'')}</textarea></div>`).join('');
+  return `<div class="editform">
+    ${dimRows}
+    <div class="dim"><span class="dlab">추상화된 아이디어</span><textarea data-edit="abs">${esc(s.abs||s.brk||'')}</textarea></div>
+    <div class="actions">
+      <button class="btn save-edit" data-id="${s.id}">수정 저장</button>
+      <button class="btn ghost cancel-edit" data-id="${s.id}">취소</button>
+    </div></div>`;
+}
+function renderSaved(theme){
+  const mine=state.scenarios.filter(s=>s.methodTheme===theme);
+  const root=document.getElementById(`saved-${theme}`);
+  document.getElementById('count').textContent=`저장된 시나리오 ${state.scenarios.length}개`;
+  if(!mine.length){root.innerHTML='<div class="empty-state">아직 이 주제에서 작성한 시나리오가 없습니다.</div>';return;}
+  root.innerHTML=mine.map(s=>{
+    const isEdit=editing.has(s.id);
+    const absText=s.abs||s.brk;
+    return `<div class="item" data-id="${s.id}"><div class="top"><div class="badges">
+      ${s.need?`<span class="bd n">${esc(s.need)}</span>`:''}
+      <span class="bd m">${esc(s.method)}</span><span class="bd t">${esc(s.tech)}</span></div>
+      <div class="itembtns">${isEdit?'':`<button class="edit" data-id="${s.id}">수정</button>`}<button class="del" data-id="${s.id}">삭제</button></div></div>
+      <div class="body">${isEdit ? editFormHTML(s)
+        : scenePartsHTML(s)+(absText?`<div class="sp"><span class="splab">추상화된 아이디어</span><span class="sptext">${esc(absText)}</span></div>`:'')}
+      </div></div>`;
+  }).join('');
+}
+
+/* ---------- vote page ---------- */
+async function loadVotes(){
+  document.getElementById('vote-body').innerHTML='<div class="empty-state">불러오는 중…</div>';
+  let data; try{ data=await api('/api/all'); }catch(e){ document.getElementById('vote-body').innerHTML='<div class="empty-state">불러오지 못했습니다.</div>'; return; }
+  renderVote(data.scenarios||[]);
+}
+function renderVote(all){
+  const colors={id:'var(--id)',rel:'var(--rel)',place:'var(--place)'};
+  const html=THEMES.map(th=>{
+    const items=all.filter(s=>s.methodTheme===th.key).sort((a,b)=>b.votes-a.votes);
+    const used=items.filter(s=>s.voted).length;
+    const left=MAX_VOTES-used;
+    const cards=items.length?items.map(s=>{
+      const disabled=(!s.voted&&left<=0)?'disabled':'';
+      const ab=s.abs||s.brk;
+      return `<div class="vcard">
+        <div class="vmain">
+          <div class="vauthor">작성자: <b>${s.name?esc(s.name):'(익명)'}</b></div>
+          <div class="vbadges">${s.need?`<span class="bd n">${esc(s.need)}</span>`:''}<span class="bd m">${esc(s.method)}</span><span class="bd t">${esc(s.tech)}</span></div>
+          <div class="vbody"><span class="vlab">캐릭터성이 돋보이는 시나리오 작성하기</span>${s.scene?esc(s.scene):'<span style="color:var(--muted)">(장면 미작성)</span>'}</div>
+          ${ab?`<div class="vabs"><b>이 시나리오를 추상적으로 표현해서 간단히 적어주세요.</b><br>${esc(ab)}</div>`:''}
+        </div>
+        <button class="votebtn ${s.voted?'on':''}" data-sid="${s.id}" ${disabled}>▲ <span>${s.votes}</span></button>
+      </div>`;
+    }).join(''):'<div class="empty-state">이 차원에는 아직 시나리오가 없습니다.</div>';
+    const top=items.slice(0,MAX_VOTES).filter(s=>s.votes>0);
+    const topbox=`<div class="topbox"><p class="h">현재 상위 ${MAX_VOTES}</p>${
+      top.length?`<ol>${top.map(s=>`<li><b>${(s.abs||s.brk)?esc(s.abs||s.brk):(esc(s.method)+' · '+esc(s.tech))}</b> <span class="v">${s.votes}표</span><br>${s.scene?esc(s.scene):''}</li>`).join('')}</ol>`
+      :'<div style="color:var(--muted);font-size:.88rem">아직 표가 없습니다.</div>'}</div>`;
+    return `<div class="dimblock" style="--dc:${colors[th.key]}">
+      <div class="dimhead"><h3>${th.title}</h3><p style="font-size: 11pt;">${th.tag}</p><span class="left">남은 표 ${left} / ${MAX_VOTES}</span></div>
+      ${topbox}
+      <div class="vlist">${cards}</div></div>`;
+  }).join('');
+  document.getElementById('vote-body').innerHTML=html;
+}
+
+/* ---------- navigation ---------- */
+function goTo(key){
+  current=key;
+  document.querySelectorAll('.page').forEach(p=>{p.hidden=(p.dataset.page!==key);});
+  renderStepper();
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(key==='vote') loadVotes();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',async e=>{
+  const step=e.target.closest('.step'); if(step){ goTo(step.dataset.step); return; }
+  const nav=e.target.closest('[data-nav]'); if(nav){
+    const idx=PAGES.findIndex(p=>p.key===current);
+    const ni=nav.dataset.nav==='next'?Math.min(idx+1,PAGES.length-1):Math.max(idx-1,0);
+    goTo(PAGES[ni].key); return;
+  }
+  const card=e.target.closest('.card'); if(card){
+    const th=card.dataset.theme, k=card.dataset.kind, i=Number(card.dataset.idx);
+    sel[th][k]=i; refreshBuilder(th); return;
+  }
+  const saveBtn=e.target.closest('.save'); if(saveBtn){
+    const th=saveBtn.dataset.theme, s=sel[th];
+    if(s.method==null||s.tech==null) return;
+    const body={need:labelOf(th,'need'),method:labelOf(th,'method'),tech:labelOf(th,'tech'),methodTheme:th,
+      abs:document.getElementById(`f-break-${th}`).value};
+    DIMS.forEach(([k])=>{ body[k]=document.getElementById(`f-${k}-${th}`).value; });
+    try{ const rec=await api('/api/scenarios',{method:'POST',body:JSON.stringify(body)});
+      state.scenarios.unshift(rec);
+      sel[th]={need:null,method:null,tech:null};
+      DIMS.forEach(([k])=>{ document.getElementById(`f-${k}-${th}`).value=''; });
+      document.getElementById(`f-break-${th}`).value='';
+      refreshBuilder(th); renderSaved(th);
+    }catch(err){ alert('저장에 실패했습니다. 서버가 실행 중인지 확인해 주세요.'); }
+    return;
+  }
+  const editBtn=e.target.closest('.edit'); if(editBtn){
+    const rec=state.scenarios.find(s=>s.id===editBtn.dataset.id);
+    if(rec){ editing.add(rec.id); renderSaved(rec.methodTheme); }
+    return;
+  }
+  const cancelBtn=e.target.closest('.cancel-edit'); if(cancelBtn){
+    const rec=state.scenarios.find(s=>s.id===cancelBtn.dataset.id);
+    editing.delete(cancelBtn.dataset.id);
+    if(rec) renderSaved(rec.methodTheme);
+    return;
+  }
+  const saveEdit=e.target.closest('.save-edit'); if(saveEdit){
+    const id=saveEdit.dataset.id, item=saveEdit.closest('.item'); const body={};
+    item.querySelectorAll('[data-edit]').forEach(t=>{ body[t.dataset.edit]=t.value; });
+    try{ const rec=await api('/api/scenarios/'+id,{method:'PUT',body:JSON.stringify(body)});
+      const idx=state.scenarios.findIndex(s=>s.id===id);
+      if(idx>=0) state.scenarios[idx]=rec;
+      editing.delete(id);
+      renderSaved(rec.methodTheme);
+    }catch(err){ alert('수정에 실패했습니다.'); }
+    return;
+  }
+  const del=e.target.closest('.del'); if(del){
+    const id=del.dataset.id; const rec=state.scenarios.find(s=>s.id===id); const th=rec?rec.methodTheme:null;
+    try{ await api('/api/scenarios/'+id,{method:'DELETE'});
+      state.scenarios=state.scenarios.filter(s=>s.id!==id); if(th) renderSaved(th);
+    }catch(err){ alert('삭제에 실패했습니다.'); }
+    return;
+  }
+  const vb=e.target.closest('.votebtn'); if(vb){
+    const sid=vb.dataset.sid;
+    try{ const r=await api('/api/vote/'+sid,{method:'POST'});
+      if(r&&r.ok===false&&r.reason==='limit'){ alert(`이 차원에서는 ${MAX_VOTES}개까지만 고를 수 있어요. 다른 선택을 해제한 뒤 골라 주세요.`); }
+      const data=await api('/api/all'); renderVote(data.scenarios||[]);
+    }catch(err){ alert('투표 처리에 실패했습니다.'); }
+    return;
+  }
+  if(e.target.id==='refresh-votes'){ loadVotes(); }
+});
+
+let nameTimer;
+document.getElementById('name').addEventListener('input',e=>{
+  state.name=e.target.value; clearTimeout(nameTimer);
+  nameTimer=setTimeout(()=>api('/api/name',{method:'POST',body:JSON.stringify({name:state.name})}).catch(()=>{}),400);
+});
+
+/* init */
+document.getElementById('name').value=state.name;
+renderStepper(); renderPages(); goTo('id');
+</script>
+</body>
+</html>
