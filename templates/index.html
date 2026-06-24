@@ -291,9 +291,9 @@ function themePageHTML(th){
         <div class="slot s-tech"><span class="k">기능</span><span class="v empty" id="slot-tech-${k}">기능 카드를 선택</span></div>
       </div>
       <div class="field">
-        <label class="q">캐릭터성이 돋보이는 시나리오 작성하기 <span class="opt">— 각 칸의 안내 질문을 참고하여 네칸을 채운 후, ‘저장’하면 하나의 장면이 됩니다</span></label>
+        <label class="q">캐릭터성이 돋보이는 시나리오 작성하기 <span class="opt">— 각 칸의 안내 질문을 참고하여 4개의 칸을 채운 후, ‘시나리오 저장’을 누르면 하나의 장면이 됩니다</span></label>
         <div class="dims">
-          <div class="dim"><span class="dlab">나의 행동</span><span class="dhint" id="dhint-physical-${k}">나는 장난감에게 어떤 행동을 하나요?</span>
+          <div class="dim"><span class="dlab">나의 행동 (물리적인 액션 또는 대화)</span><span class="dhint" id="dhint-physical-${k}">나는 장난감에게 어떤 행동을 하나요?</span>
             <textarea id="f-physical-${k}"></textarea></div>
           <div class="dim"><span class="dlab">장난감의 반응</span><span class="dhint" id="dhint-functional-${k}">장난감이 어떻게 반응하나요? (말하기, 움직이기 등)</span>
             <textarea id="f-functional-${k}"></textarea></div>
@@ -353,10 +353,10 @@ function composed(theme){
   if(!n&&!m&&!t) return '';
   const mm=m||'곁에서 하는 평소 방법', tt=t||'장난감의 작동', nn=n||'이 캐릭터에게 바라는 것';
   return [
-    '[나의 행동] 나는 장난감에게 어떤 행동을 하나요?',
-    `[장난감의 반응] ‘${mm}’${batchim(mm)?'을':'를'} 할 때 ‘${tt}’${batchim(tt)?'이':'가'} 어떤 움직임이나 말로 나타나나요?`,
-    '[장면의 배경] 그 순간 이 캐릭터에게 어떤 배경의 이야기가 깔려 있나요?',
-    `[마음이 가는 이유] 그 모습에서 ‘${nn}’${batchim(nn)?'이':'가'} 왜 채워진다고 느끼나요?`
+    '[나의 행동] 선택한 카드를 활용하여 안내 질문 만드는중...🔑',
+    `[장난감의 반응] 선택한 카드를 활용하여 안내 질문 만드는중...🔑`,
+    '[장면의 배경] 선택한 카드를 활용하여 안내 질문 만드는중...🔑',
+    `[마음이 가는 이유] 선택한 카드를 활용하여 안내 질문 만드는중...🔑`
   ].join('\n');
 }
 

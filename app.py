@@ -29,8 +29,42 @@ MAX_VOTES_PER_DIM = 3
 # ── OpenAI(ChatGPT) 설정 ─────────────────────────────────────────
 # 키가 없으면 '예시 상황' 문장은 자동으로 기본 템플릿으로 대체됩니다.
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 OPENAI_BASE = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+
+# 호출할 모델 목록(앞에서부터 순서대로 시도). 한 모델이 오류로 호출되지 않으면
+# 다음 모델로 넘어가고, 모두 실패하면 템플릿 문구로 안전하게 대체됩니다.
+#   • OPENAI_MODEL       : 첫 번째(기본) 모델을 바꾸고 싶을 때 사용
+#   • OPENAI_FALLBACK_MODELS : 폴백 모델들을 쉼표로 구분해 지정 (예: "gpt-4o,gpt-4.1-mini")
+#   • OPENAI_MODELS      : 전체 시도 순서를 한 번에 지정하고 싶을 때 사용(위 두 값을 덮어씀)
+_DEFAULT_PRIMARY = "gpt-4o-mini"
+_DEFAULT_FALLBACKS = ["gpt-4o", "gpt-4.1-mini", "gpt-3.5-turbo"]
+
+
+def _build_model_list():
+    """환경변수에서 시도할 모델 순서를 만든다. 중복은 순서를 지키며 제거."""
+    explicit = os.environ.get("OPENAI_MODELS", "").strip()
+    if explicit:
+        raw = explicit.split(",")
+    else:
+        primary = os.environ.get("OPENAI_MODEL", _DEFAULT_PRIMARY).strip()
+        fb_env = os.environ.get("OPENAI_FALLBACK_MODELS", "").strip()
+        fallbacks = (
+            [m for m in fb_env.split(",")] if fb_env else list(_DEFAULT_FALLBACKS)
+        )
+        raw = [primary] + fallbacks
+
+    seen, models = set(), []
+    for m in raw:
+        m = m.strip()
+        if m and m not in seen:
+            seen.add(m)
+            models.append(m)
+    return models
+
+
+OPENAI_MODELS = _build_model_list()
+# 하위 호환: 기존 코드가 참조할 수 있는 단일 모델명(목록의 첫 번째).
+OPENAI_MODEL = OPENAI_MODELS[0] if OPENAI_MODELS else _DEFAULT_PRIMARY
 
 THEME_LABEL = {
     "id": "정체성 — 이 장난감은 누구인가",
@@ -72,7 +106,7 @@ SYSTEM_PROMPT = (
     "4) 마음이 가는 이유 — 어떤 점이 장난감을 캐릭터처럼 느껴지게 하는지\n\n"
 
     "목표:\n"
-    "- 참가자가 고른 필요성, 방법, 기능을 활용하여 구체적인 장면을 상상하도록 자극합니다.\n"
+    "- 참가자가 고른 필요성, 방법, 기능을 모두 활용하여 구체적인 장면을 상상하도록 자극합니다.\n"
     "- 각 질문은 여러 방향의 답이 나올 수 있도록 열어 둡니다.\n"
     "- 네 질문에 차례로 답하면 하나의 자연스러운 장면이 만들어지게 합니다.\n\n"
 
@@ -80,6 +114,8 @@ SYSTEM_PROMPT = (
     "- 한국어로 정확히 네 줄만 씁니다.\n"
     "- 각 줄은 '[나의 행동]', '[장난감의 반응]', '[장면의 배경]', '[마음이 가는 이유]' 순서로 시작합니다.\n"
     "- 모든 줄은 반드시 물음표로 끝나는 한 문장의 질문이어야 합니다.\n"
+    "- 장면의 배경은 방법과 기능을 활용하여 작성해야 합니다.\n"
+    "- 마음이 가는 이유는 필요성과 연관지어 시나리오에서 왜 캐릭터성이 느껴지는지를 물어봐야 합니다.\n"
     "- 참가자가 선택한 카드의 내용을 질문의 실마리로 활용하되, 카드명을 그대로 나열하지 않습니다.\n"
     "- 행동, 표정, 움직임, 대사, 장소, 관계 또는 감정을 임의로 정해서 제시하지 않습니다.\n"
     "- '미소를 짓는다', '고개를 끄덕인다', '친구처럼 느낀다'처럼 참가자가 작성해야 할 내용을 대신 답하지 않습니다.\n"
@@ -91,12 +127,6 @@ SYSTEM_PROMPT = (
     "- [장난감의 반응] 선택한 기능이 어떤 말이나 움직임으로 나타날지 묻습니다.\n"
     "- [장면의 배경] 앞선 행동과 반응이 일어나는 장소, 관계 또는 이야기를 묻습니다.\n"
     "- [마음이 가는 이유] 그 장면의 어떤 점이 선택한 필요성을 채우고 캐릭터성을 느끼게 하는지 묻습니다.\n\n"
-
-    "출력 형식:\n"
-    "[나의 행동] 사람은 장난감에게 어떤 행동을 해볼 수 있을까요?\n"
-    "[장난감의 반응] 장난감은 어떤 말이나 움직임으로 반응할까요?\n"
-    "[장면의 배경] 이 행동과 반응이 일어나는 데에는 어떤 이야기가 있을까요?\n"
-    "[마음이 가는 이유] 이 장면의 어떤 점이 장난감을 캐릭터처럼 느껴지게 할까요?\n"
 
     "말투 규칙:\n"
     "- 워크숍 진행자가 참가자에게 편하게 묻는 자연스러운 구어체를 사용합니다.\n"
@@ -194,7 +224,8 @@ def _fallback_prompt(need, method, tech):
     return "\n".join(lines)
 
 
-def _openai_sentence(need, method, tech, theme):
+def _openai_sentence(need, method, tech, theme, model):
+    """지정한 단일 모델로 한 번 호출. 실패하면 예외를 그대로 올린다."""
     user = (
         f"주제(차원): {THEME_LABEL.get(theme, theme or '(미지정)')}\n"
         f"필요성: {need or '(선택하지 않음)'}\n"
@@ -203,7 +234,7 @@ def _openai_sentence(need, method, tech, theme):
     )
     body = json.dumps(
         {
-            "model": OPENAI_MODEL,
+            "model": model,
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user},
@@ -224,6 +255,32 @@ def _openai_sentence(need, method, tech, theme):
     with urllib.request.urlopen(req, timeout=20) as resp:
         payload = json.loads(resp.read().decode("utf-8"))
     return payload["choices"][0]["message"]["content"].strip()
+
+
+def _openai_with_fallback(need, method, tech, theme):
+    """OPENAI_MODELS 순서대로 시도. 한 모델이 오류면 다음 모델로 넘어간다.
+
+    반환값: (생성된 문장, 사용된 모델명, [실패 기록])
+    모든 모델이 실패하면 마지막 예외를 올린다.
+    """
+    attempts = []
+    last_err = None
+    for model in OPENAI_MODELS:
+        try:
+            text = _openai_sentence(need, method, tech, theme, model)
+            return text, model, attempts
+        except urllib.error.HTTPError as e:
+            # 본문을 읽어 두면 디버깅에 도움이 됨(모델명 오타·권한 등).
+            try:
+                detail = e.read().decode("utf-8", "replace")[:200]
+            except Exception:
+                detail = ""
+            last_err = f"{model}: HTTP {e.code} {detail}".strip()
+            attempts.append(last_err)
+        except Exception as e:  # 네트워크·프록시 차단·타임아웃 등
+            last_err = f"{model}: {str(e)[:200]}"
+            attempts.append(last_err)
+    raise RuntimeError(last_err or "모든 모델 호출 실패")
 
 
 # ── 라우트 ──────────────────────────────────────────────────────
@@ -252,8 +309,13 @@ def gen_prompt():
     if not OPENAI_API_KEY:
         return jsonify(prompt=_fallback_prompt(need, method, tech), source="template")
     try:
-        return jsonify(prompt=_openai_sentence(need, method, tech, theme), source="ai")
-    except Exception as e:  # 키 오류·네트워크·프록시 차단 등 → 템플릿으로 안전 대체
+        text, used_model, attempts = _openai_with_fallback(need, method, tech, theme)
+        resp = {"prompt": text, "source": "ai", "model": used_model}
+        if attempts:
+            # 첫 모델이 실패하고 폴백 모델이 응답한 경우, 어떤 모델이 건너뛰어졌는지 남깁니다.
+            resp["fellBackFrom"] = attempts
+        return jsonify(resp)
+    except Exception as e:  # 모든 모델 실패 → 템플릿으로 안전 대체
         return jsonify(
             prompt=_fallback_prompt(need, method, tech),
             source="template",
@@ -408,4 +470,5 @@ if __name__ == "__main__":
     # 로컬 실행 전용. PythonAnywhere 등 WSGI 환경에서는 이 블록이 실행되지 않습니다.
     # host="0.0.0.0" → 같은 와이파이의 다른 기기에서도 http://<내 IP>:8000/ 으로 접속 가능
     # (예: http://192.168.0.167:8000/). 본인 컴퓨터에서는 그대로 http://127.0.0.1:8000/ 사용.
+    print("사용할 모델 순서:", " → ".join(OPENAI_MODELS))
     app.run(host="0.0.0.0", port=8000, debug=True)
