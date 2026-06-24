@@ -321,8 +321,8 @@ function themePageHTML(th){
 function votePageHTML(){
   return `
   <section class="page" data-page="vote" hidden>
-    <div class="sec-head"><h2>모아보고 투표</h2><span class="tag">모두가 작성한 시나리오를 차원별로 모았습니다</span></div>
-    <p class="votenote">각 차원에서 <b>가장 ‘캐릭터답다’</b>고 느껴지는 시나리오를 <b>${MAX_VOTES}개씩</b> 골라 주세요. 표가 모이면 차원마다 상위 ${MAX_VOTES}개가 자동으로 정리됩니다. <button class="btn ghost" id="refresh-votes" style="padding:6px 12px;margin-left:6px">새로고침</button></p>
+    <div class="sec-head"><h2>모아보고 투표</h2><span class="tag">모두가 작성한 시나리오를 주제별로 모았습니다</span></div>
+    <p class="votenote">각 주제에서 <b>가장 ‘캐릭터답다’</b>고 느껴지는 시나리오를 <b>${MAX_VOTES}개씩</b> 골라 주세요. 표가 모이면 주제마다 상위 ${MAX_VOTES}개가 자동으로 정리됩니다. <button class="btn ghost" id="refresh-votes" style="padding:6px 12px;margin-left:6px">새로고침</button></p>
     <div id="vote-body"></div>
     <details class="memo">
       <summary>운영자용 — 전체 내려받기</summary>
@@ -479,7 +479,7 @@ function renderVote(all){
         </div>
         <button class="votebtn ${s.voted?'on':''}" data-sid="${s.id}" ${disabled}>▲ <span>${s.votes}</span></button>
       </div>`;
-    }).join(''):'<div class="empty-state">이 차원에는 아직 시나리오가 없습니다.</div>';
+    }).join(''):'<div class="empty-state">이 주제에는 아직 시나리오가 없습니다.</div>';
     const top=items.slice(0,MAX_VOTES).filter(s=>s.votes>0);
     const topbox=`<div class="topbox"><p class="h">현재 상위 ${MAX_VOTES}</p>${
       top.length?`<ol>${top.map(s=>`<li><b>${(s.abs||s.brk)?esc(s.abs||s.brk):(esc(s.method)+' · '+esc(s.tech))}</b> <span class="v">${s.votes}표</span><br>${s.scene?esc(s.scene):''}</li>`).join('')}</ol>`
@@ -560,7 +560,7 @@ document.addEventListener('click',async e=>{
   const vb=e.target.closest('.votebtn'); if(vb){
     const sid=vb.dataset.sid;
     try{ const r=await api('/api/vote/'+sid,{method:'POST'});
-      if(r&&r.ok===false&&r.reason==='limit'){ alert(`이 차원에서는 ${MAX_VOTES}개까지만 고를 수 있어요. 다른 선택을 해제한 뒤 골라 주세요.`); }
+      if(r&&r.ok===false&&r.reason==='limit'){ alert(`이 주제에서는 ${MAX_VOTES}개까지만 고를 수 있어요. 다른 선택을 해제한 뒤 골라 주세요.`); }
       const data=await api('/api/all'); renderVote(data.scenarios||[]);
     }catch(err){ alert('투표 처리에 실패했습니다.'); }
     return;
